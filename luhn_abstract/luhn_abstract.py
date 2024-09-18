@@ -2,9 +2,7 @@ import pandas as pd
 import numpy as np
 import nltk
 
-nltk.download('stopwords')
-
-def luhn_tokenize(val_text,is_remove_stopwords:bool=False,vec_stopwords_add:list=['e','g','it']):
+def tokenize(val_text,is_remove_stopwords:bool=False,vec_stopwords_add:list=['e','g','it']):
     nltk_tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
     if(is_remove_stopwords):
         nltk_stopwords = nltk.corpus.stopwords.words('english')
@@ -26,7 +24,7 @@ def luhn_tokenize(val_text,is_remove_stopwords:bool=False,vec_stopwords_add:list
     df_words = pd.concat(df_words,ignore_index=True,sort=False)
     return(df_sentences,df_words)
 
-def luhn_word_freq_cutoffs(df:pd.DataFrame,val_lower:float=0.4,val_upper:float=0.9):
+def word_freq_cutoffs(df:pd.DataFrame,val_lower:float=0.4,val_upper:float=0.9):
     #C
     val_sig_lower = df['significance'].quantile(q=val_lower)
     if(val_sig_lower==df['significance'].min()):
@@ -38,7 +36,7 @@ def luhn_word_freq_cutoffs(df:pd.DataFrame,val_lower:float=0.4,val_upper:float=0
     print(f'''Quantile Significance Lower = {val_sig_lower}\nQuantile Significance Upper = {val_sig_upper}''')
     return(val_sig_lower,val_sig_upper)
 
-def luhn_calc_signifcance_words(df:pd.DataFrame,is_use_luhn_tf:bool=True,is_remove_stopwords:bool=False,vec_stopwords_add:list=['e','g','it']):
+def calc_signifcance_words(df:pd.DataFrame,is_use_luhn_tf:bool=True,is_remove_stopwords:bool=False,vec_stopwords_add:list=['e','g','it']):
     df_word_cnts = pd.DataFrame(df['word'].value_counts()).reset_index()
     if(is_remove_stopwords):
         nltk_stopwords = nltk.corpus.stopwords.words('english')
@@ -54,13 +52,13 @@ def luhn_calc_signifcance_words(df:pd.DataFrame,is_use_luhn_tf:bool=True,is_remo
     df_rev = pd.merge(left=df,right=df_word_cnts,on='word',how='left')
     return(df_rev)
 
-def luhn_calc_word_score(val_sig:float,val_lower:float,val_upper:float):
+def calc_word_score(val_sig:float,val_lower:float,val_upper:float):
     val_score = 0
     if(val_sig>=val_lower and val_sig<=val_upper):
         val_score = val_sig
     return(val_score)
 
-def luhn_calc_sentence_score(df:pd.DataFrame,val_num_apart:int=4,is_vector_return:bool=False,func_summary=None):
+def calc_sentence_score(df:pd.DataFrame,val_num_apart:int=4,is_vector_return:bool=False,func_summary=None):
     vec_scores = []
     vec_n_length = []
     val_idx_max = df.index.max()
@@ -101,12 +99,12 @@ def luhn_calc_sentence_score(df:pd.DataFrame,val_num_apart:int=4,is_vector_retur
             rtn_val = func_summary(vec_scores)
     return(rtn_val)
 
-def luhn_calc_sentence_score_all(df:pd.DataFrame,val_num_apart:int=4,is_vector_return:bool=False,func_summary=None):
+def calc_sentence_score_all(df:pd.DataFrame,val_num_apart:int=4,is_vector_return:bool=False,func_summary=None):
     vec_scores_sent_ids = df['id_sent'].unique()
     vec_scores_sent_ids.sort()
     vec_scores_sent = []
     for i in vec_scores_sent_ids:
-        vec_scores_sent.append(luhn_calc_sentence_score(df=df.loc[df['id_sent']==i].copy(),
+        vec_scores_sent.append(calc_sentence_score(df=df.loc[df['id_sent']==i].copy(),
                                                         val_num_apart=val_num_apart,
                                                         is_vector_return=is_vector_return,
                                                         func_summary=func_summary))
@@ -119,7 +117,7 @@ def luhn_calc_sentence_score_all(df:pd.DataFrame,val_num_apart:int=4,is_vector_r
         rtn_val = df_sentences_scored.copy()
     return(rtn_val)
 
-def luhn_summarize(df_sentences:pd.DataFrame,df_scores:pd.DataFrame,val_num_sentences:int=5):
+def summarize(df_sentences:pd.DataFrame,df_scores:pd.DataFrame,val_num_sentences:int=5):
     vec_summary_text = []
     vec_summary_scores = []
     df = pd.merge(left=df_sentences,right=df_scores,on='id_sent',how='left')
@@ -129,9 +127,11 @@ def luhn_summarize(df_sentences:pd.DataFrame,df_scores:pd.DataFrame,val_num_sent
         vec_summary_text.append(row['sentence'])
     return(vec_summary_scores[:val_num_sentences],vec_summary_text[:val_num_sentences])
 
-def luhn_print_summary(vec_scores:list,vec_sentences:list):
+def print_summary(vec_scores:list,vec_sentences:list):
     vec_combined = []
     for i in zip(vec_scores,vec_sentences):
         vec_combined.append('{} '.format(i[1].strip().replace('\n',' '))+"\33[31m"+'[{:.4f}]'.format(i[0])+"\33[0m")
     print(' '.join(vec_combined))
     return(vec_combined)
+
+nltk.download('stopwords',quiet=True)
