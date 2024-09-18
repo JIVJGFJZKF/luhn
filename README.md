@@ -14,9 +14,9 @@ Luhn, Hans Peter. "The Automatic Creation of Literature Abstracts." __IBM Journa
 luhn_abstract requires:
 
 - Python (>=3.6)
-- NumPy (>= |NumPyMinVersion|)
-- NLTK (>= |SciPyMinVersion|)
-- Pandas (>= |JoblibMinVersion|)
+- NumPy
+- NLTK
+- Pandas
 ~~~~~~~~~~~~
 
 # Example
