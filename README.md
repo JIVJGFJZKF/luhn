@@ -33,7 +33,7 @@ print('-'*50)
 str_rtn = la.luhn_abstract.print_summary(vec_scores=vec_scores,vec_sentences=vec_sents)
 ```
 
-```terminal
+```
 Quantile Significance Lower = 1.00001
 Quantile Significance Upper = 31.0
 --------------------------------------------------
