@@ -1,6 +1,7 @@
 **luhn_abstract** is a Python module for automatically generating an abstract from a document using unsupervised techniques.  The Luhn paper was published in 1958, and the general concept of the algorithm is outlined in the diagram below.
 
-# Dependencies
+Dependencies
+------------------------
 ~~~~~~~~~~~~
 luhn_abstract requires:
 
@@ -10,7 +11,8 @@ luhn_abstract requires:
 - Pandas
 ~~~~~~~~~~~~
 
-# Example
+Example
+------------------------
 
 See the GitHub repository for a Jupyter notebook with examples.
 
@@ -38,5 +40,6 @@ still in use in 2020, they have become mostly obsolete with the advance of LLMs 
 2023. [12.2500]
 ```
 
-Citation:
+Citation
+------------------------
 Luhn, Hans Peter. "The Automatic Creation of Literature Abstracts." __IBM Journal of Research and Development 2.2__ (1958): 159-165.
