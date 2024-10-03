@@ -8,7 +8,7 @@ setup(
 	url='https://github.com/JIVJGFJZKF/luhn',
 	description='A library for automatically generating an abstract from a document using unsupervised techniques.',
 	long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
+	long_description_content_type='text/markdown',
 	packages=find_packages(),
 	classifiers=[
 		'Programming Language :: Python :: 3',
