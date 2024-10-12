@@ -7,7 +7,7 @@ Luhn, Hans Peter. "The Automatic Creation of Literature Abstracts." __IBM Journa
 
 **luhn_abstract** is a Python module for automatically generating an abstract from a document using unsupervised techniques.  The Luhn paper was published in 1958, and the general concept of the algorithm is outlined in the diagram below.
 
-![algorithm](./images/image_001.png)
+![algorithm](./images/fig_001.png)
 
 # Dependencies
 ~~~~~~~~~~~~
