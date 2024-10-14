@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import nltk
+from nltk.util import ngrams
 
 nltk_stemmer = nltk.stem.PorterStemmer()
 nltk_tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
@@ -24,6 +25,7 @@ vec_luhn_sw = [x.lower() for x in vec_luhn_sw]
 vec_luhn_sw = list(set(vec_luhn_sw))
 
 def tokenize(val_text,
+             val_n_gram:int=-1,
              is_sw_remove:bool=False,
              vec_sw_add:list=['e','g','it'],
              func_stem=None):
@@ -32,6 +34,7 @@ def tokenize(val_text,
 
     Args:
         val_text (str): The input text to be tokenized.
+        val_n_gram (int): The length of a contiguous sequence of n words. Defaults to -1, which are 1-grams.
         is_sw_remove (bool, optional): Flag indicating whether to remove stopwords from the tokenized words. 
                                        Defaults to False.
         vec_sw_add (list, optional): Additional stopwords to remove, in case `is_sw_remove` is True. 
@@ -62,15 +65,14 @@ def tokenize(val_text,
         nltk_stopwords = []
     nltk_tokens_sent = nltk.sent_tokenize(val_text)
     df_sentences = pd.DataFrame({'sentence':nltk_tokens_sent})
-    #df_sentences.columns = ['sentence']
     df_sentences['id_sent'] = df_sentences.index
     df_words = []
     for i,val_sent in enumerate(nltk_tokens_sent):
         nltk_tokens_word = [j.lower() for j in nltk_tokenizer.tokenize(val_sent) if j not in nltk_stopwords]
-        #vec_id_word = list(range(0,len(nltk_tokens_word)))
-        #df_words_tmp = pd.DataFrame({'word':nltk_tokens_word,vec_id_word]).T
+        if(val_n_gram>1):
+            vec_n_grams = ngrams(nltk_tokens_word,n=val_n_gram)
+            nltk_tokens_word = [' '.join(x) for x in vec_n_grams]
         df_words_tmp = pd.DataFrame({'word':nltk_tokens_word})
-        #df_words_tmp.columns = ['word','id_sent']
         df_words_tmp['id_sent'] = i
         df_words.append(df_words_tmp)
     df_words = pd.concat(df_words,ignore_index=True,sort=False)
@@ -171,8 +173,8 @@ def tokenize_stem_luhn(vec_words:list,val_cutoff:int=6):
     return(vec_words_rtn)
 
 def word_freq_cutoffs(df:pd.DataFrame,
-                      val_lower:float=0.15,
-                      val_upper:float=0.85,
+                      val_lower:float=0.30,
+                      val_upper:float=0.88,
                       is_print:bool=False):
     """
     Calculates the significance score cutoffs for words based on specified quantiles of the significance distribution.
@@ -215,7 +217,7 @@ def calc_signifcance_words(df:pd.DataFrame,
                            is_use_luhn_tf:bool=True,
                            is_sw_zero:bool=False,
                            vec_sw_add:list=['e','g','it'],
-                           vec_sw_luhn:list=vec_luhn_sw):
+                           vec_sw_luhn:list=[]):
     """
     Calculates the significance of words in a DataFrame based on word frequency, 
     with options to remove stopwords and apply different term frequency methods.
@@ -228,7 +230,7 @@ def calc_signifcance_words(df:pd.DataFrame,
                                      Defaults to False.
         vec_sw_add (list, optional): A list of additional stopwords to be considered if `is_sw_zero` is True. Defaults to ['e', 'g', 'it'].
         vec_sw_luhn (list, optional): A list of words to exclude from the DataFrame before significance calculation (Luhn's stopwords). 
-                                      Defaults to list of preopositions, pronouns, and articles.
+                                      Defaults to None, but could be list of preopositions, pronouns, and articles by passing built-in vec_luhn_sw.
 
     Returns:
         pd.DataFrame: A DataFrame where each word is enriched with its corresponding significance score, calculated either using Luhn's raw frequency 
@@ -295,7 +297,7 @@ def calc_word_score(val_sig:float,
     return(val_score)
 
 def calc_sentence_score(df:pd.DataFrame,
-                        val_num_apart:int=7,
+                        val_num_apart:int=5,
                         is_vector_return:bool=False,
                         func_summary=None):
     vec_scores = []
@@ -339,7 +341,7 @@ def calc_sentence_score(df:pd.DataFrame,
     return(rtn_val)
 
 def calc_sentence_score_all(df:pd.DataFrame,
-                            val_num_apart:int=4,
+                            val_num_apart:int=5,
                             is_vector_return:bool=False,
                             func_summary=None):
     """
@@ -349,7 +351,7 @@ def calc_sentence_score_all(df:pd.DataFrame,
         df (pd.DataFrame): A DataFrame containing sentence data with at least the following columns:
                            'id_sent' (unique identifier for each sentence).
         val_num_apart (int, optional): A parameter to control the scoring process, typically defining 
-                                       how many adjacent sentences are considered during scoring. Defaults to 4.
+                                       how many adjacent sentences are considered during scoring. Defaults to 5.
         is_vector_return (bool, optional): If True, returns a list of scores for each sentence. 
                                            If False, returns a DataFrame of sentence IDs and their scores. 
                                            Defaults to False.
@@ -447,21 +449,23 @@ def print_summary(vec_scores:list,
     return(vec_combined)
 
 def run_auto_summarization(val_text:str,
-                           val_lower_flt:float=0.15,
+                           val_lower_flt:float=0.30,
                            val_lower_int:int=None,
-                           val_upper_flt:float=0.85,
+                           val_upper_flt:float=0.88,
                            val_upper_int:int=None,
-                           val_spacing:int=7,
-                           val_n:int=4,
+                           val_spacing:int=5,
+                           val_num_sentences:int=4,
+                           val_n_gram:int=-1,
                            is_sw_remove:bool=False,
                            is_sw_zero:bool=False,
                            is_use_luhn_tf=True,
-                           vec_sw_luhn:list=vec_luhn_sw,
+                           vec_sw_luhn:list=[],
                            vec_sw_add:list=[],
                            func_stem_selected=None,
                            func_summary_selected=None,
                            is_print:bool=False):
     df_sents,df_words = tokenize(val_text=val_text,
+                                 val_n_gram=val_n_gram,
                                  is_sw_remove=is_sw_remove,
                                  vec_sw_add=vec_sw_add,
                                  func_stem=func_stem_selected)
@@ -501,16 +505,18 @@ def run_auto_summarization(val_text:str,
                                                       func_summary=func_summary_selected)
         vec_scores,vec_top_sents = summarize(df_sentences=df_sents,
                                              df_scores=df_sentences_scored,
-                                             val_num_sentences=val_n)
-        str_rtn = print_summary(vec_scores=vec_scores,
-                                vec_sentences=vec_top_sents,
-                                is_print=is_print)
+                                             val_num_sentences=val_num_sentences)
+        if(is_print):
+            str_rtn = print_summary(vec_scores=vec_scores,
+                                    vec_sentences=vec_top_sents,
+                                    is_print=is_print)
     else:
         df_sentences_scored = pd.DataFrame()
         vec_scores = []
         vec_top_sents = []
         if(is_print):
-            print(f'''WARNING: The selected upper limit results in D={val_sig_upper}, which is greater than the max={df_words_scored['significance'].max()}''')
+            print(f'''WARNING: The selected lower limit results in C={val_sig_lower}, max={df_words_scored['significance'].min()}''')
+            print(f'''WARNING: The selected upper limit results in D={val_sig_upper}, max={df_words_scored['significance'].max()}''')
     return(df_words_scored,df_sentences_scored,vec_scores,vec_top_sents)
 
 #This ensures the NLTK stopwords are updated when the library is imported...
